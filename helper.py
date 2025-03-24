@@ -1,9 +1,20 @@
 import numpy as np
+import config
 
-class helper():
+
+def show(state):
+    for row in state:
+        print(" ".join(f"{num:4}" for num in row))
+
+def get_input(x):
+    try: 
+        input = int(x)
+    except ValueError:
+        print("Invalid input")
+        return None
+
+    if (input >= config.BOARD_COLUMNS or input < 0):
+        print("Invalid input")
+        return None
     
-    @staticmethod
-    def print(state):
-        print('\n'.join([''.join(['{:4}'.format(item) for item in row]) for row in state]))
-        
-    
+    return input

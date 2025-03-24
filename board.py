@@ -2,10 +2,13 @@ import config
 import numpy as np
 from scipy.signal import convolve2d
 
-class board():
+class Board:
     def __init__(self):
         self.rows = config.BOARD_ROWS
         self.columns = config.BOARD_COLUMNS
+        
+    def create_new_board(self):
+        return self.reset()
         
     def reset(self):
         # Reset the board
@@ -73,6 +76,9 @@ class board():
         
         # Get next state and its score
         next_state = self.get_next_state(state, action, player)
+        if next_state is None:
+            return None, None, None
+        
         game_result = self.evaluate(state)
         
         flag = False
