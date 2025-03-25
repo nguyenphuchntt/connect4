@@ -10,11 +10,11 @@ def get_input(x):
     try: 
         input = int(x)
     except ValueError:
-        print("Invalid input")
+        print("Invalid input! Try again")
         return None
 
     if (input >= config.BOARD_COLUMNS or input < 0):
-        print("Invalid input")
+        print("Invalid input! Try again")
         return None
     
     return input

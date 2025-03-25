@@ -10,8 +10,8 @@ helper.show(state)
 player = config.RED_PLAYER
 while (True):
     my_input = helper.get_input(input())
-    if my_input is None:
-        break
+    while my_input is None:
+        my_input = helper.get_input(input())
     
     state = my_board.step(state, my_input, player)[0]
     if state is None:
