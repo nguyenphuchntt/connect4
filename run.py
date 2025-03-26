@@ -1,6 +1,7 @@
 import board
 import helper
 import config
+import pruning
 import math
 
 
@@ -27,7 +28,7 @@ while (True):
         
     # Minimax AI
     print(f"\nAI's turn.")
-    ai_action = my_board.minimax(state, 5, -math.inf, math.inf, True)[0]
+    ai_action = pruning.minimax(state, 5, -math.inf, math.inf, True)[0]
     state = my_board.step(state, ai_action, config.AI_PIECE)
     helper.show(state)
 
