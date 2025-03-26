@@ -12,12 +12,12 @@ helper.show(state)
 while (True):
     # Player
     print(f"\nPlayer's turn.")
-    valid_moves = my_board.get_valid_action(state)
+    valid_moves = my_board.get_valid_action(state) + 1
     print(f"Valid moves: {valid_moves}")
-    action = int(input("Choose a column (0–6): "))
-    while action not in valid_moves:
+    action = int(input("Choose a column (1-7): ")) - 1
+    while action not in valid_moves - 1:
         print("⚠️ Invalid move. Try again.")
-        action = int(input("Choose a column (0–6): "))
+        action = int(input("Choose a column (1–7): "))
     
     state = my_board.step(state, action, config.PLAYER_PIECE)
     helper.show(state)
@@ -31,6 +31,7 @@ while (True):
     ai_action = pruning.minimax(state, 5, -math.inf, math.inf, True)[0]
     state = my_board.step(state, ai_action, config.AI_PIECE)
     helper.show(state)
+    print(ai_action)
 
     if my_board.winning_state(state, config.AI_PIECE):
         print("🎉 AI wins!")

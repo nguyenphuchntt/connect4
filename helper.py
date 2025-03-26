@@ -8,7 +8,7 @@ def show(state):
 
 def get_input(x):
     try: 
-        input = int(x)
+        input = int(x) - 1
     except ValueError:
         print("Invalid input! Try again")
         return None
@@ -16,5 +16,5 @@ def get_input(x):
     if (input >= config.BOARD_COLUMNS or input < 0):
         print("Invalid input! Try again")
         return None
-    
+    print(input)
     return input
