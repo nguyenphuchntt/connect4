@@ -9,6 +9,7 @@ my_board = board.Board()
 state = my_board.create_new_board()
 helper.show(state)
 
+
 while (True):
     # Player
     print(f"\nPlayer's turn.")
@@ -40,3 +41,4 @@ while (True):
     if my_board.is_terminal_node(state):
         print("Draw")
         break 
+

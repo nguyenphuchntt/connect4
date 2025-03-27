@@ -8,6 +8,7 @@ class Board:
         self.columns = config.BOARD_COLUMNS
         
     def create_new_board(self):
+
         "Create a board."
         return self.reset()
         
@@ -26,6 +27,7 @@ class Board:
         
     def get_next_state(self, state, action, player=config.RED_PLAYER):
         "Return a state after execute an action."
+
         # Game is over
         if self.evaluate(state) != 0: return None
         
@@ -47,7 +49,7 @@ class Board:
         "Evaluate the current state. Return 1 for RED win, -1 for BlUE win and 0 otherwise."
         # Create a filter kernel for checking horizontal and vertical
         filter_kernel = np.ones((1, 4), dtype=int)
-    
+        
         # Horizontal
         horizontal_check = convolve2d(state, filter_kernel, mode='valid')
         
@@ -72,6 +74,7 @@ class Board:
         
     def step(self, state, action, player=config.RED_PLAYER):
         "Call self.get_next_state() and self.evaluate() to return next state and done flag."
+
         # Get next state and its score
         next_state = self.get_next_state(state, action, player)
         if next_state is None:
@@ -91,6 +94,7 @@ class Board:
     def is_terminal_node(self, state):
         "Return True if the current state is the end state."
         return self.evaluate(state) in [-1, 1] or len(self.get_valid_action(state)) == 0
+
     
     
     
