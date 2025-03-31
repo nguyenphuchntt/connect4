@@ -18,31 +18,13 @@ class Board:
         
     def get_valid_action(self, state):
         "Return an array containing the indices of valid actions."
-        if self.evaluate(state) != 0:
-            return np.array([])
-        
-        # Calculate sum in horizontal
-        cols = np.sum(np.abs(state), axis=0)
-        return np.where(cols < self.rows)[0]
+        return (state[0] == 0).astype(np.uint8)
         
     def get_next_state(self, state, action, player=config.RED_PLAYER):
         "Return a state after execute an action."
-
-        # Game is over
-        if self.evaluate(state) != 0: return None
-        
-        # Board is full
-        if np.sum(abs(state)) == self.rows * self.columns: return None
-        
-        # Invalid actions
-        if action not in self.get_valid_action(state): return None
-        
-        # Identify the next empty row in the action's row
-        row = np.where(state[:, action] == 0)[0][-1] # Go through all positions at action's column and get the last position
-        
-        # Execute the action
+        row = np.max(np.where(state[:, action] == 0)[0]) 
         new_state = state.copy()
-        new_state[row, action] = player
+        new_state[row, action] = player  # Place player's move
         return new_state
     
     def evaluate(self, state):
@@ -70,8 +52,8 @@ class Board:
         elif any(np.any(check == -4) for check in result):
             return -1
         return 0
-        
-        
+
+
     def step(self, state, action, player=config.RED_PLAYER):
         "Call self.get_next_state() and self.evaluate() to return next state and done flag."
 
@@ -93,7 +75,7 @@ class Board:
     
     def is_terminal_node(self, state):
         "Return True if the current state is the end state."
-        return self.evaluate(state) in [-1, 1] or len(self.get_valid_action(state)) == 0
+        return self.evaluate(state) in [-1, 1] or sum(self.get_valid_action(state)) == 0
 
     
     
