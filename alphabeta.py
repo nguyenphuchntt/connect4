@@ -14,14 +14,14 @@ def evaluate_window(window, piece):
         opp_piece = config.BLUE_PLAYER
 
     if window.count(piece) == 4:
-        score += 100
+        score += 1000
     elif window.count(piece) == 3 and window.count(config.EMPTY) == 1:
-        score += 5
+        score += 20
     elif window.count(piece) == 2 and window.count(config.EMPTY) == 2:
-        score += 2
+        score += 5
 
     if window.count(opp_piece) == 3 and window.count(config.EMPTY) == 1:
-        score -= 4
+        score -= 10
 
     return score
 
@@ -64,7 +64,7 @@ def score_position(state, piece):
 
 
 
-def minimax(state, depth, alpha, beta, maximizingPlayer):
+def minimax(state, depth, alpha, beta, is_maximizingPlayer):
     "Minimax pruning algorithm"
     valid_actions = my_board.get_valid_action(state)
     is_terminal = my_board.is_terminal_node(state)
@@ -77,10 +77,10 @@ def minimax(state, depth, alpha, beta, maximizingPlayer):
             else: # Game is over, no more valid moves
                 return (None, 0)
         else: # Depth is zero
-            return (None, score_position(state, config.BLUE_PLAYER))
+            return (None, score_position(state, config.BLUE_PLAYER if is_maximizingPlayer else config.RED_PLAYER))
         
     # Maximizing for AI
-    if maximizingPlayer:
+    if is_maximizingPlayer:
         value = -math.inf
         action = random.choice(np.where(valid_actions == 1)[0])
         for act in np.where(valid_actions == 1)[0]:
