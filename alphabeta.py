@@ -66,7 +66,7 @@ def score_position(state, piece):
 
 def minimax(state, depth, alpha, beta, maximizingPlayer):
     "Minimax pruning algorithm"
-    valid_locations = my_board.get_valid_action(state)
+    valid_actions = my_board.get_valid_action(state)
     is_terminal = my_board.is_terminal_node(state)
     if depth == 0 or is_terminal:
         if is_terminal:
@@ -82,9 +82,9 @@ def minimax(state, depth, alpha, beta, maximizingPlayer):
     # Maximizing for AI
     if maximizingPlayer:
         value = -math.inf
-        action = random.choice(valid_locations)
-        for act in valid_locations:
-            temp_state = my_board.step(state, act, config.BLUE_PLAYER)[0]
+        action = random.choice(np.where(valid_actions == 1)[0])
+        for act in np.where(valid_actions == 1)[0]:
+            temp_state = my_board.get_next_state(state, act, config.BLUE_PLAYER)
             new_score = minimax(temp_state, depth-1, alpha, beta, False)[1]
             if new_score > value:
                 value = new_score
@@ -97,9 +97,9 @@ def minimax(state, depth, alpha, beta, maximizingPlayer):
     # Minimizing for player
     else: 
         value = math.inf
-        action = random.choice(valid_locations)
-        for act in valid_locations:
-            temp_state = my_board.step(state, act, config.RED_PLAYER)[0]
+        action = random.choice(np.where(valid_actions == 1)[0])
+        for act in np.where(valid_actions == 1)[0]:
+            temp_state = my_board.get_next_state(state, act, config.RED_PLAYER)
             new_score = minimax(temp_state, depth-1, alpha, beta, True)[1]
             if new_score < value:
                 value = new_score

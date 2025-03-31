@@ -1,8 +1,6 @@
 import board
 import helper
-import config
-import pruning
-import math
+import time
 import numpy as np
 from mcts import MCTS
 
@@ -25,30 +23,20 @@ while (True):
 
         print(f"\nPlayer's turn.")
         valid_moves = my_board.get_valid_action(state)
-        # print(f"Valid moves: {valid_moves}")
+        print("Valid moves", [i for i in range(7) if valid_moves[i] == 1])
         action = int(input("Choose a column (1-7): ")) - 1
         while action >= len(valid_moves) or valid_moves[action] == 0:
             print("⚠️ Invalid move. Try again.")
-            action = int(input("Choose a column (1–7): ")) - 1
-        
-        # state = my_board.step(state, action, config.RED_PLAYER)[0]
-        # helper.show(state)
-    
-        # if my_board.evaluate(state) == 1:
-        #     print("🎉 Player wins!")
-        #     break
-        
-    # Minimax AI
-    # print(f"\nAI's turn.")
-    # ai_action = pruning.minimax(state, 5, -math.inf, math.inf, True)[0]
-    # state = my_board.step(state, ai_action, config.BLUE_PLAYER)[0]
-    # helper.show(state)
-    # print(ai_action)
 
     else: 
+        print(f"\nAI's turn.")
+        start_time = time.time()
         neutral_state = -state
         mcts_probs = mcts.search(state=neutral_state)
         action = np.argmax(mcts_probs)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Execution Time: {execution_time:.4f} seconds")
 
     state = my_board.get_next_state(state, action, player)
     helper.show(state)
@@ -59,19 +47,12 @@ while (True):
     if is_terminal:
         print(state)
         if value == 1:
-            print(player, " win")
+            print("Player win")
         elif value == -1:
-            print(player, " win")
+            print("AI win")
         else: 
             print("draw")
         break
         
 
-    player = -player
-    # if my_board.evaluate(neutral_state) == 1:
-    #     print("🎉 AI wins!")
-    #     break
-        
-    # if my_board.is_terminal_node(neutral_state):
-    #     print("Draw")
-    #     break 
+    player = -player 
