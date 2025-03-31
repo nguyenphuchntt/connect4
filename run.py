@@ -15,11 +15,11 @@ while (True):
     # Player
     print(f"\nPlayer's turn.")
     valid_moves = my_board.get_valid_action(state)
-    print("Valid moves", [i for i in range(7) if valid_moves[i] == 1])
-    action = int(input("Choose a valid column: "))
-    while action >= 7 or valid_moves[action] == 0:
+    print("Valid moves", [i+1 for i in range(7) if valid_moves[i] == 1])
+    action = int(input("Choose a valid column: ")) - 1
+    while action >= 7 or action < 0 or valid_moves[action] == 0:
         print("⚠️ Invalid move. Try again.")
-        action = int(input("Choose a valid column : "))
+        action = int(input("Choose a valid column : ")) - 1
     
     state = my_board.get_next_state(state, action, config.RED_PLAYER)
     helper.show(state)
