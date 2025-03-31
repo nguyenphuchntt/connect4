@@ -3,6 +3,9 @@
 static const int WIDTH = 7;
 static const int HEIGHT = 6;
 
+static_assert(WIDTH < 10, "Board's width must be less than 10");
+static_assert(WIDTH*(HEIGHT+1) <= 64, "Board does not fit in 64bits bitboard");
+
 class Board {
 
 private:
@@ -18,7 +21,21 @@ private:
     int height[WIDTH];
     unsigned int movedStep;
 
+    uint64_t current_position; // lưu người chơi hiện tại
+    uint64_t mask;              // lưu cho cả hai người chơi
+
+    // return a bitmask containing a single 1 corresponding to the top cel of a given column
+    static uint64_t top_mask(int col) {
+        return (UINT64_C(1) << (HEIGHT - 1)) << col * (HEIGHT+1);
+    }
+
+    // return a bitmask containing a single 1 corresponding to the bottom cell of a given column
+    static uint64_t bottom_mask(int col) {
+        return UINT64_C(1) << col * (HEIGHT+1);
+    }
+
 public:
+
     Board() : board{0}, height{0}, movedStep{0} {
     }
 
@@ -30,16 +47,15 @@ public:
      * Indicates whether a column is playable
      */
     bool canPlay(int column) const {
-        return height[column] < HEIGHT;
+        return (mask & top_mask(column)) == 0;
     }
 
     /**
      * Play a playable column
      */
     void play(int column) {
-        // moved_step % 2 to determine the current player
-        board[column][height[column]] = 1 + movedStep % 2;
-        height[column]++;
+        current_position ^= mask; // chuyển người chơi 
+        mask |= mask + bottom_mask(column);
         movedStep++;
     }
 
