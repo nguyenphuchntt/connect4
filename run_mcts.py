@@ -20,14 +20,12 @@ player = 1
 while (True):
     # Player
     if player == 1:
-
         print(f"\nPlayer's turn.")
         valid_moves = my_board.get_valid_action(state)
         print("Valid moves", [i for i in range(7) if valid_moves[i] == 1])
-        action = int(input("Choose a column (1-7): ")) - 1
+        action = int(input("Choose a column: ")) 
         while action >= len(valid_moves) or valid_moves[action] == 0:
             print("⚠️ Invalid move. Try again.")
-
     else: 
         print(f"\nAI's turn.")
         start_time = time.time()
