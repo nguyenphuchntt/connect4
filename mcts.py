@@ -20,9 +20,11 @@ class Node:
         self.value_sum = 0
 
     def is_fully_expanded(self):
+        "Retrurn true if the node cannot be expanded anymore."
         return np.sum(self.expandable_moves) == 0 and len(self.children) > 0
 
     def select(self):
+        "Consider the ucb rate of each children node to get the one with the best ucb rate."
         best_child = None
         best_ucb = -np.inf
         for child in self.children:
@@ -33,6 +35,7 @@ class Node:
         return best_child
     
     def get_ucb(self, child):
+        "Calculate the ucb rate of a node. Instead of using normal ucb, convert it the the range [0, 1]."
         if (child.visit_count == 0):
             return np.inf
         else:
@@ -42,7 +45,7 @@ class Node:
         
 
     def expand(self):
-        "Get the next state and flip"
+        "Expand 1 child randomly, flip and return the state of the child."
         action = np.random.choice(np.where(self.expandable_moves == 1)[0])
         self.expandable_moves[action] = 0
         child_state = self.state.copy()
@@ -53,6 +56,8 @@ class Node:
         return child
     
     def simulate(self):
+        "Rollout (random simulation). "
+        "If current state is terminal node then return. Else play random move until reach ternimal node."
         value = self.board.evaluate(self.state)
         is_terminal = self.board.is_terminal_node(self.state)
 
@@ -73,6 +78,7 @@ class Node:
             rollout_player = -rollout_player
 
     def backpropagate(self, value):
+        "Backpropation step."
         self.value_sum += value
         self.visit_count += 1
 
@@ -81,15 +87,16 @@ class Node:
             self.parent.backpropagate(value)
 
 class MCTS:
+    "MCTs basically has 4 moves: Tree traversal, Node expansion, Rollout (random simulation) and Backpropagation"
     def __init__(self, board:Board, args):
         self.board = board
         self.args = args
 
     def search(self, state):
         root = Node(self.board, self.args, state)
-        #define root
-        for search in range(self.args['num_searches']):
-            #selection
+        # Define root
+        for _ in range(self.args['num_searches']):
+            # Selection
             node = root
             while node.is_fully_expanded():
                 node = node.select()
@@ -97,12 +104,14 @@ class MCTS:
             is_terminal = self.board.is_terminal_node(node.state)
 
             if not is_terminal:
-                #expansion
+                # Expansion, once each time
                 node = node.expand()
-                #simulation or let it through network
+                # Simulation or let it through network
                 value = node.simulate()
-            #backup
+            # Backup
             node.backpropagate(value)
+
+        # Action having the most time visited will be selected
         action_probs = np.zeros(config.BOARD_COLUMNS)
         for child in root.children:
             action_probs[child.action_taken] = child.visit_count
