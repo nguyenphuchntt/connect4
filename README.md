@@ -1,4 +1,3 @@
 connect4
 
-# TODO: solve() function
-#       
+Nguồn đây mọi người: http://blog.gamesolver.org/solving-connect-four/01-introduction/
