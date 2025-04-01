@@ -1,4 +1,4 @@
-#include "./board.cpp"
+#include "transpositionTable.cpp"
 
 /**
  * NOTE: Giải thích alpha beta window: 
@@ -10,6 +10,8 @@
 
 class Solver {
 private:
+    TranspositionTable transTable;
+
     unsigned long long nodeCount;
 
     int columnOrder[WIDTH]; // column exploration order
@@ -28,12 +30,15 @@ private:
 
         int max = (WIDTH * HEIGHT - 1 - board.getMovedStep()) / 2; // maximum score is score of winning at this state
 
+        if(int val = transTable.get(board.key()))
+        max = val + MIN_SCORE - 1;
+
         if(beta > max) {
             beta = max;                     // there is no need to keep beta above our max possible score.
             if(alpha >= beta) return beta;  // prune the exploration if the [alpha;beta] window is empty.
         }
 
-        int bestScore = - WIDTH* HEIGHT;
+        int bestScore = - WIDTH * HEIGHT;
 
         for(int x = 0; x < WIDTH; x++) {
             // compute the score of all possible next move and keep the best one
@@ -46,12 +51,13 @@ private:
                                                     // need to search for a position that is better than the best so far.
             }
         }
-      return alpha;
+        transTable.put(board.key(), alpha - MIN_SCORE + 1); // save the upper bound of the position
+        return alpha;
     }
 
 public:
 
-    Solver() : nodeCount(0) {
+    Solver() : nodeCount{0}, transTable(8388593) { // 64MB cache
         for(int i = 0; i < WIDTH; i++){
             columnOrder[i] = WIDTH/2 + (1-2*(i%2))*(i+1)/2; // initialize the column exploration order, starting with center columns
         } 
@@ -64,6 +70,11 @@ public:
 
     unsigned long long getNodeCount() {
         return nodeCount;
+    }
+
+    void reset() {
+        nodeCount = 0;
+        transTable.reset();
     }
 
 };
