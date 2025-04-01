@@ -7,6 +7,55 @@ static_assert(WIDTH < 10, "Board's width must be less than 10");
 static_assert(WIDTH*(HEIGHT+1) <= 64, "Board does not fit in 64bits bitboard");
 
 class Board {
+    /** 
+     * A class storing a Connect 4 position.
+     * Functions are relative to the current player to play.
+     * Position containing aligment are not supported by this class.
+     *
+     * A binary bitboard representationis used.
+     * Each column is encoded on HEIGH+1 bits.
+     * 
+     * Example of bit order to encode for a 7x6 board
+     * .  .  .  .  .  .  .
+     * 5 12 19 26 33 40 47
+     * 4 11 18 25 32 39 46
+     * 3 10 17 24 31 38 45
+     * 2  9 16 23 30 37 44
+     * 1  8 15 22 29 36 43
+     * 0  7 14 21 28 35 42 
+     * 
+     * Position is stored as
+     * - a bitboard "mask" with 1 on any color stones
+     * - a bitboard "current_player" with 1 on stones of current player
+     *
+     * "current_player" bitboard can be transformed into a compact and non ambiguous key
+     * by adding an extra bit on top of the last non empty cell of each column.
+     * This allow to identify all the empty cells whithout needing "mask" bitboard
+     *
+     * current_player "x" = 1, opponent "o" = 0
+     * board     position  mask      key       bottom
+     *           0000000   0000000   0000000   0000000
+     * .......   0000000   0000000   0001000   0000000
+     * ...o...   0000000   0001000   0010000   0000000
+     * ..xx...   0011000   0011000   0011000   0000000
+     * ..ox...   0001000   0011000   0001100   0000000
+     * ..oox..   0000100   0011100   0000110   0000000
+     * ..oxxo.   0001100   0011110   1101101   1111111
+     *
+     * current_player "o" = 1, opponent "x" = 0
+     * board     position  mask      key       bottom
+     *           0000000   0000000   0001000   0000000
+     * ...x...   0000000   0001000   0000000   0000000
+     * ...o...   0001000   0001000   0011000   0000000
+     * ..xx...   0000000   0011000   0000000   0000000
+     * ..ox...   0010000   0011000   0010100   0000000
+     * ..oox..   0011000   0011100   0011010   0000000
+     * ..oxxo.   0010010   0011110   1110011   1111111
+     *
+     * key is an unique representation of a board key = position + mask + bottom
+     * in practice, as bottom is constant, key = position + mask is also a 
+     * non-ambigous representation of the position.
+     */
 
 private:
     /**
@@ -34,9 +83,46 @@ private:
         return UINT64_C(1) << col * (HEIGHT+1);
     }
 
+    // return a bitmask 1 on all the cells of a given column
+    static uint64_t column_mask(int col) {
+        return ((UINT64_C(1) << HEIGHT)-1) << col*(HEIGHT+1);
+    }
+  
+    // check winning condition
+    static bool alignment(uint64_t pos) {
+        // horizontal 
+        uint64_t m = pos & (pos >> (HEIGHT+1));
+        // shift sang phai 1 don vi & vi tri hien tai -> xem co 2 o lien nhau khong
+        if(m & (m >> (2*(HEIGHT+1)))) return true;
+        // m la ket qua cua phep tinh tren, shift tiep sang 2 don vi de xem co 4 o lien nhau khong
+        // Ket qua chi can khong phai tat ca deu la bit 0 la true
+
+        // diagonal 1
+        m = pos & (pos >> HEIGHT);
+        // tuong tu o tren nhung shift cheo tren
+        if(m & (m >> (2*HEIGHT))) return true;
+
+        // diagonal 2 
+        m = pos & (pos >> (HEIGHT+2));
+        // tuong tu o tren nhung shift cheo duoi
+        if(m & (m >> (2*(HEIGHT+2)))) return true;
+
+        // vertical;
+        m = pos & (pos >> 1);
+        //tuong tu o tren nhung shift theo chieu doc
+        if(m & (m >> 2)) return true;
+
+        return false;
+    }
+
 public:
 
-    Board() : board{0}, height{0}, movedStep{0} {
+    Board() : current_position{0}, mask{0}, movedStep{0} {
+
+    }
+
+    uint64_t key() const {
+        return current_position + mask;
     }
 
     unsigned int getMovedStep() const {
@@ -56,6 +142,9 @@ public:
     void play(int column) {
         current_position ^= mask; // chuyển người chơi 
         mask |= mask + bottom_mask(column);
+        // bottom_mask trả về một mask chứa giá trị 1 duy nhất tại cột đã truyền vào
+        // mask + bottom_mask(col) sẽ đẩy cột được chọn lên chiều cao 1 (vì 1 + 1 = 10)
+        // |= để fill lại số 0 (trong 10) thành 11
         movedStep++;
     }
 
@@ -75,26 +164,12 @@ public:
      * Indicates whether the current player wins by playing a given column.
      */
     bool isWinningMove(int column) const {
-        int current_player = 1 + movedStep % 2;
-        if(height[column] >= 3 
-            && board[column][height[column]-1] == current_player 
-            && board[column][height[column]-2] == current_player 
-            && board[column][height[column]-3] == current_player) 
-          return true;
-        for (int dy = -1; dy <= 1; dy++) {    // check hàng ngang, chéo lên, chéo xuống
-            int nb = 0;                       // đếm số lượng cùng màu
-            for(int dx = -1; dx <= 1; dx += 2) // tương ứng với ở trên, nhưng mở rộng sang bên trái hay bên phải
-                for(int x = column + dx, y = height[column] + dx * dy; x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT && board[x][y] == current_player; nb++) {
-                // 
-                x += dx;
-                y += dx * dy;
-            }
-            if(nb >= 3) return true; // nếu có lớn hơn hoặc bằng 3 ô cùng màu (chưa tính ô hiện tại) thì thắng
-        }
-        return false;
+        uint64_t pos = current_position;
+        pos |= (mask + bottom_mask(column)) & column_mask(column);
+        // (mask + bottom_mask(column)) giống trong hàm play()
+        // & column_mask(col) xác định rằng ta chỉ làm việc trên 1 cột này
+        return alignment(pos);
     }
-
-
 
 };
 
