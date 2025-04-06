@@ -8,15 +8,13 @@ struct Entry {
 
 // hash table to caching
 class TranspositionTable {
+public:
 
-private:
     std::vector<Entry> entries;
 
     unsigned int index(uint64_t key) const {
         return key % entries.size();
     }
-
-public:
 
     TranspositionTable () {}
 

@@ -38,14 +38,12 @@ private:
             if(alpha >= beta) return beta;  // prune the exploration if the [alpha;beta] window is empty.
         }
 
-        int bestScore = - WIDTH * HEIGHT;
-
         for(int x = 0; x < WIDTH; x++) {
             // compute the score of all possible next move and keep the best one
             if (board.canPlay(columnOrder[x])) { // play by order
                 Board board_2(board);
                 board_2.play(columnOrder[x]);               // It's opponent turn in P2 position after current player plays x column.
-                int score = -negamax(board_2, -alpha, -beta); // If current player plays col x, his score will be the opposite of opponent's score after playing col x
+                int score = -negamax(board_2, -beta, -alpha); // If current player plays col x, his score will be the opposite of opponent's score after playing col x
                 if(score >= beta) return score;  // prune the exploration if we find a possible move better than what we were looking for.
                 if(score > alpha) alpha = score; // reduce the [alpha;beta] window for next exploration, as we only 
                                                     // need to search for a position that is better than the best so far.
@@ -55,7 +53,14 @@ private:
         return alpha;
     }
 
+
+
 public:
+
+    void reset() {
+        nodeCount = 0;
+        transTable.reset();
+    }
 
     Solver() : nodeCount{0}, transTable(8388593) { // 64MB cache
         for(int i = 0; i < WIDTH; i++){
@@ -64,17 +69,26 @@ public:
     }
 
     int getBestMove(const Board& board) {
-        nodeCount = 0;
-        return negamax(board, - WIDTH * HEIGHT/2, WIDTH * HEIGHT / 2);
+        // implement zero window search ... no tim gia tri chinh xac cua score bang cach gan giong cay nhi phan
+        int min = - (WIDTH * HEIGHT - board.getMovedStep()) / 2;
+        int max = (WIDTH * HEIGHT+1 - board.getMovedStep())/2;
+        while (min < max) {
+            // iteratively narrow the min-max exploration window
+            int med = min + (max - min) / 2; // trung binh cong
+            if (med <= 0 && min / 2 < med) med = min / 2;
+            else if (med >= 0 && max / 2 > med) med = max / 2; // dieu chinh de tranh lap vo han
+            int r = negamax(board, med, med + 1);
+            if (r <= med) {
+                max = r;
+            } else {
+                min = r;
+            }
+        }
+        return min;
     }
 
     unsigned long long getNodeCount() {
         return nodeCount;
-    }
-
-    void reset() {
-        nodeCount = 0;
-        transTable.reset();
     }
 
 };

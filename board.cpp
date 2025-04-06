@@ -56,68 +56,9 @@ class Board {
      * non-ambigous representation of the position.
      */
 
-private:
-    /**
-     * NOTE: 0 means EMPTY
-     * NOTE: 1 means PERSON
-     * NOTE: -1 means AI
-     * 
-     * NOTE: Ban co nay nam ngang
-     * NOTE: Cách tính điểm vd: -5 có nghĩa là sẽ thua sau 5 nước tính từ khi chơi full bàn cờ (42/42 quân), +5 nghĩa là chơi thắng sau 5 nước tính từ khi chơi full bàn cờ
-     */
-    int board[WIDTH][HEIGHT];
-    int height[WIDTH];
-    unsigned int movedStep;
-
-    uint64_t current_position; // lưu người chơi hiện tại
-    uint64_t mask;              // lưu cho cả hai người chơi
-
-    // return a bitmask containing a single 1 corresponding to the top cel of a given column
-    static uint64_t top_mask(int col) {
-        return (UINT64_C(1) << (HEIGHT - 1)) << col * (HEIGHT+1);
-    }
-
-    // return a bitmask containing a single 1 corresponding to the bottom cell of a given column
-    static uint64_t bottom_mask(int col) {
-        return UINT64_C(1) << col * (HEIGHT+1);
-    }
-
-    // return a bitmask 1 on all the cells of a given column
-    static uint64_t column_mask(int col) {
-        return ((UINT64_C(1) << HEIGHT)-1) << col*(HEIGHT+1);
-    }
-  
-    // check winning condition
-    static bool alignment(uint64_t pos) {
-        // horizontal 
-        uint64_t m = pos & (pos >> (HEIGHT+1));
-        // shift sang phai 1 don vi & vi tri hien tai -> xem co 2 o lien nhau khong
-        if(m & (m >> (2*(HEIGHT+1)))) return true;
-        // m la ket qua cua phep tinh tren, shift tiep sang 2 don vi de xem co 4 o lien nhau khong
-        // Ket qua chi can khong phai tat ca deu la bit 0 la true
-
-        // diagonal 1
-        m = pos & (pos >> HEIGHT);
-        // tuong tu o tren nhung shift cheo tren
-        if(m & (m >> (2*HEIGHT))) return true;
-
-        // diagonal 2 
-        m = pos & (pos >> (HEIGHT+2));
-        // tuong tu o tren nhung shift cheo duoi
-        if(m & (m >> (2*(HEIGHT+2)))) return true;
-
-        // vertical;
-        m = pos & (pos >> 1);
-        //tuong tu o tren nhung shift theo chieu doc
-        if(m & (m >> 2)) return true;
-
-        return false;
-    }
-
-public:
+    public:
 
     Board() : current_position{0}, mask{0}, movedStep{0} {
-
     }
 
     uint64_t key() const {
@@ -169,7 +110,69 @@ public:
         // & column_mask(col) xác định rằng ta chỉ làm việc trên 1 cột này
         return alignment(pos);
     }
+ 
+    uint64_t getMask() const {
+        return mask;
+    }
 
+    uint64_t getPosition() const {
+        return current_position;
+    }
+
+private:
+    /**
+     * NOTE: 0 means EMPTY
+     * NOTE: 1 means PERSON
+     * NOTE: -1 means AI
+     * 
+     * NOTE: Ban co nay nam ngang
+     * NOTE: Cách tính điểm vd: -5 có nghĩa là sẽ thua sau 5 nước tính từ khi chơi full bàn cờ (42/42 quân), +5 nghĩa là chơi thắng sau 5 nước tính từ khi chơi full bàn cờ
+     */
+    uint64_t current_position; // lưu người chơi hiện tại
+    uint64_t mask;              // lưu cho cả hai người chơi
+    unsigned int movedStep;
+
+    // return a bitmask containing a single 1 corresponding to the top cel of a given column
+    static uint64_t top_mask(int col) {
+        return (UINT64_C(1) << (HEIGHT - 1)) << col * (HEIGHT+1);
+    }
+
+    // return a bitmask containing a single 1 corresponding to the bottom cell of a given column
+    static uint64_t bottom_mask(int col) {
+        return UINT64_C(1) << col * (HEIGHT+1);
+    }
+
+    // return a bitmask 1 on all the cells of a given column
+    static uint64_t column_mask(int col) {
+        return ((UINT64_C(1) << HEIGHT)-1) << col*(HEIGHT+1);
+    }
+  
+    // check winning condition
+    static bool alignment(uint64_t pos) {
+        // horizontal 
+        uint64_t m = pos & (pos >> (HEIGHT+1));
+        // shift sang phai 1 don vi & vi tri hien tai -> xem co 2 o lien nhau khong
+        if(m & (m >> (2*(HEIGHT+1)))) return true;
+        // m la ket qua cua phep tinh tren, shift tiep sang 2 don vi de xem co 4 o lien nhau khong
+        // Ket qua chi can khong phai tat ca deu la bit 0 la true
+
+        // diagonal 1
+        m = pos & (pos >> HEIGHT);
+        // tuong tu o tren nhung shift cheo tren
+        if(m & (m >> (2*HEIGHT))) return true;
+
+        // diagonal 2 
+        m = pos & (pos >> (HEIGHT+2));
+        // tuong tu o tren nhung shift cheo duoi
+        if(m & (m >> (2*(HEIGHT+2)))) return true;
+
+        // vertical;
+        m = pos & (pos >> 1);
+        //tuong tu o tren nhung shift theo chieu doc
+        if(m & (m >> 2)) return true;
+
+        return false;
+    }
 };
 
 
