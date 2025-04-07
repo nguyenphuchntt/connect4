@@ -1,5 +1,6 @@
 #include "transpositionTable.h"
 #include "board.h"
+#include "MoveSorter.h"
 /**
  * NOTE: Giải thích alpha beta window: 
  * 
@@ -48,17 +49,26 @@ private:
             if(alpha >= beta) return beta;  // prune the exploration if the [alpha;beta] window is empty.
         }
 
-        for(int x = 0; x < WIDTH; x++) {
-            // compute the score of all possible next move and keep the best one
-            if (next & Board::column_mask(columnOrder[x])) { // play by order
-                Board board_2(board);
-                board_2.play(columnOrder[x]);               // It's opponent turn in P2 position after current player plays x column.
-                int score = -negamax(board_2, -beta, -alpha); // If current player plays col x, his score will be the opposite of opponent's score after playing col x
-                if(score >= beta) return score;  // prune the exploration if we find a possible move better than what we were looking for.
-                if(score > alpha) alpha = score; // reduce the [alpha;beta] window for next exploration, as we only 
-                                                    // need to search for a position that is better than the best so far.
+        MoveSorter moves;
+
+        for (int i = WIDTH; i--;) {
+            // xét từ cột
+            if (uint64_t move = next & Board::column_mask(columnOrder[i])) {
+                // Ghép next với một cột toàn 1 -> xem cột đó có possible move không
+                // nếu có -> add
+                moves.add(move, board.moveScore(move));
             }
         }
+
+        while (uint64_t next = moves.getNext()) {
+            Board board_2(board);
+            board_2.play(next);               // It's opponent turn in P2 position after current player plays x column.
+            int score = -negamax(board_2, -beta, -alpha); // If current player plays col x, his score will be the opposite of opponent's score after playing col x
+            if(score >= beta) return score;  // prune the exploration if we find a possible move better than what we were looking for.
+            if(score > alpha) alpha = score; // reduce the [alpha;beta] window for next exploration, as we only 
+                                                // need to search for a position that is better than the best so far.
+        }
+
         transTable.put(board.key(), alpha - MIN_SCORE + 1); // save the upper bound of the position
         return alpha;
     }

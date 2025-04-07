@@ -121,6 +121,7 @@ class Board {
         return winning_position() & possible();
     }
 
+    // return a bitmap of all the possible next moves that do not lose in one turn.
     uint64_t possibleNonLosingMoves() const {
         assert(!canWinNext());
         uint64_t possible_mask = possible();
@@ -144,6 +145,11 @@ class Board {
         return ((UINT64_C(1) << HEIGHT)-1) << col*(HEIGHT+1);
     }
 
+    // score a possible move = number of possible winning state
+    int moveScore(uint64_t move) const {
+        return popCount(compute_winning_position(current_position | move, mask));
+    }
+
 private:
     /**
      * NOTE: 0 means EMPTY
@@ -165,6 +171,15 @@ private:
     // return a bitmask containing a single 1 corresponding to the bottom cell of a given column
     static uint64_t bottom_mask_col(int col) {
         return UINT64_C(1) << col * (HEIGHT+1);
+    }
+    
+    // counts number of bit set to one in a 64 bits integer
+    static unsigned int popCount(uint64_t m) {
+        unsigned int res = 0;
+        for (res = 0; m; res++) {
+            m &= m - 1;
+        }
+        return res;
     }
   
     // check winning condition
@@ -217,6 +232,7 @@ private:
         return compute_winning_position(current_position ^ mask, mask);
     }
 
+    // list possible winning moves
     static uint64_t compute_winning_position(uint64_t position, uint64_t mask) {
         // chieu doc
         uint64_t r = (position << 1) & (position << 2) & (position << 3);
