@@ -9,6 +9,11 @@ static const int HEIGHT = 6;
 static const int MIN_SCORE = - (WIDTH * HEIGHT) / 2 + 3;
 static const int MAX_SCORE = (WIDTH * HEIGHT + 1) / 2 - 3;
 
+constexpr static uint64_t bottom(int width, int height) {
+    // return a bitmask with a row full of 1 at the bottom
+    return width == 0 ? 0 : bottom(width - 1, height) | 1LL << (width - 1) * (height + 1);
+}
+
 class Board {
     /** 
      * A class storing a Connect 4 position.
@@ -77,7 +82,7 @@ class Board {
      * Indicates whether a column is playable
      */
     bool canPlay(int column) const {
-        return (mask & top_mask(column)) == 0;
+        return (mask & top_mask_col(column)) == 0;
     }
 
     /**
@@ -85,7 +90,7 @@ class Board {
      */
     void play(int column) {
         current_position ^= mask; // chuyển người chơi 
-        mask |= mask + bottom_mask(column);
+        mask |= mask + bottom_mask_col(column);
         // bottom_mask trả về một mask chứa giá trị 1 duy nhất tại cột đã truyền vào
         // mask + bottom_mask(col) sẽ đẩy cột được chọn lên chiều cao 1 (vì 1 + 1 = 10)
         // |= để fill lại số 0 (trong 10) thành 11
@@ -103,17 +108,6 @@ class Board {
         }
         return seq.size();
     }
-
-    /**
-     * Indicates whether the current player wins by playing a given column.
-     */
-    bool isWinningMove(int column) const {
-        uint64_t pos = current_position;
-        pos |= (mask + bottom_mask(column)) & column_mask(column);
-        // (mask + bottom_mask(column)) giống trong hàm play()
-        // & column_mask(col) xác định rằng ta chỉ làm việc trên 1 cột này
-        return alignment(pos);
-    }
  
     uint64_t getMask() const {
         return mask;
@@ -123,7 +117,7 @@ class Board {
         return current_position;
     }
 
-    
+
 
 private:
     /**
@@ -139,12 +133,12 @@ private:
     unsigned int movedStep;
 
     // return a bitmask containing a single 1 corresponding to the top cel of a given column
-    static uint64_t top_mask(int col) {
+    static uint64_t top_mask_col(int col) {
         return (UINT64_C(1) << (HEIGHT - 1)) << col * (HEIGHT+1);
     }
 
     // return a bitmask containing a single 1 corresponding to the bottom cell of a given column
-    static uint64_t bottom_mask(int col) {
+    static uint64_t bottom_mask_col(int col) {
         return UINT64_C(1) << col * (HEIGHT+1);
     }
 
@@ -178,6 +172,84 @@ private:
         if(m & (m >> 2)) return true;
 
         return false;
+    }
+
+    const static uint64_t bottom_mask = bottom(WIDTH, HEIGHT);
+    const static uint64_t board_mask = bottom_mask * ((1LL << HEIGHT) - 1); // full 1
+
+    // 
+    uint64_t possible() const {
+        return (mask + bottom_mask) & board_mask; // những ô đã đi rồi + 1 ô trên nó full 1
+    }
+
+    /**
+     * Indicates whether the current player wins by playing a given column.
+     */
+    bool isWinningMove(int column) const {
+        return winning_position() & possible() & column_mask(column);
+    }
+
+    uint64_t winning_position() const {
+        return compute_winning_position(current_position, mask);
+    }
+
+    uint64_t opponent_winning_position() const {
+        return compute_winning_position(current_position ^ mask, mask);
+    }
+
+    bool canWinNext() {
+        return winning_position() & possible();
+    }
+
+    uint64_t possibleNonLosingMoves() {
+        assert(!canWinNext());
+        uint64_t possible_mask = possible();
+        uint64_t opponent_win = opponent_winning_position();
+        uint64_t forced_moves = possible_mask & opponent_win;
+        if (forced_moves) {
+            if (forced_moves & (forced_moves - 1)) {
+                // more than 1 forced move
+                return 0; // lose
+            } else {
+                possible_mask = forced_moves;
+                // have to play this move
+            }
+        }
+        return possible_mask & ~(opponent_win >> 1);
+        // tránh đánh ô ở dưới ô đối thủ sẽ thắng vì turn sau là turn của họ đánh rồi
+    }
+
+    static uint64_t compute_winning_position(uint64_t position, uint64_t mask) {
+        // chieu doc
+        uint64_t r = (position << 1) & (position << 2) & (position << 3);
+
+        // chieu ngang
+        uint64_t p = (position << (HEIGHT+1)) & (position << 2*(HEIGHT+1));
+        r |= p & (position << 3*(HEIGHT+1));
+        r |= p & (position >> (HEIGHT+1));
+        p = (position >> (HEIGHT+1)) & (position >> 2*(HEIGHT+1));
+        r |= p & (position << (HEIGHT+1));
+        r |= p & (position >> 3*(HEIGHT+1));
+
+        //diagonal 1
+        p = (position << HEIGHT) & (position << 2*HEIGHT);
+        r |= p & (position << 3*HEIGHT);
+        r |= p & (position >> HEIGHT);
+        p = (position >> HEIGHT) & (position >> 2*HEIGHT);
+        r |= p & (position << HEIGHT);
+        r |= p & (position >> 3*HEIGHT);
+
+        //diagonal 2
+        p = (position << (HEIGHT+2)) & (position << 2*(HEIGHT+2));
+        r |= p & (position << 3*(HEIGHT+2));
+        r |= p & (position >> (HEIGHT+2));
+        p = (position >> (HEIGHT+2)) & (position >> 2*(HEIGHT+2));
+        r |= p & (position << (HEIGHT+2));
+        r |= p & (position >> 3*(HEIGHT+2));
+
+        return r & (board_mask ^ mask);
+        // r la cac nuoc di co the win
+        // (board_mask ^ mask) la nhung nuoc chua danh
     }
 };
 
