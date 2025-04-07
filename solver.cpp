@@ -92,13 +92,16 @@ private:
 
 
 public:
+    unsigned long long getNodeCount() {
+        return nodeCount;
+    }
 
     void reset() {
         nodeCount = 0;
         transTable.reset();
     }
 
-    Solver() : nodeCount{0}, transTable(8388593) { // 64MB cache
+    Solver() : nodeCount{0} { // 64MB cache
         for(int i = 0; i < WIDTH; i++){
             columnOrder[i] = WIDTH/2 + (1-2*(i%2))*(i+1)/2; // initialize the column exploration order, starting with center columns
         } 
@@ -126,9 +129,4 @@ public:
         }
         return min;
     }
-
-    unsigned long long getNodeCount() {
-        return nodeCount;
-    }
-
 };

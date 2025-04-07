@@ -67,12 +67,10 @@ private:
     uint32_t *K; // array to store 
     uint64_t *V; // array to store value;
 
-    size_t index(uint32_t key) const {
+    size_t index(uint64_t key) const {
         return key % size;
     }
 public:
-
-    std::vector<Entry> entries;
 
     TranspositionTable() {
         K = new uint32_t[size];
@@ -85,12 +83,8 @@ public:
         delete[] V;
     }
 
-    TranspositionTable(unsigned int size): entries(size) {
-    }
-
-    
     void reset() { // fill everything with 0, because 0 value means missing data
-        memset(K, 0, size * sizeof(key_t));
+        memset(K, 0, size * sizeof(uint32_t));
         memset(V, 0, size * sizeof(uint64_t));
     }
 
