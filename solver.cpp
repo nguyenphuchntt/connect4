@@ -17,21 +17,31 @@ private:
     int columnOrder[WIDTH]; // column exploration order
 
     int negamax(const Board& board, int alpha, int beta) {
+        assert(alpha < beta);
+        assert(!board.canWinNext());
+
         nodeCount++;
 
-        if (board.getMovedStep() == WIDTH * HEIGHT) { // draw game
-            return 0;
+        uint64_t next = board.possibleNonLosingMoves();
+        if (next == 0) {
+            return - (WIDTH * HEIGHT - board.getMovedStep()) / 2;
+        }
+        if (board.getMovedStep() >= WIDTH * HEIGHT - 2) {
+            return 0; // draw
+        }
+        
+        int min = - (WIDTH * HEIGHT - 2 - board.getMovedStep()) / 2; // minimum score
+
+        if (alpha < min) {
+            alpha = min;
+            if (alpha >= beta) return alpha; //prune
         }
 
-        for(int x = 0; x < WIDTH; x++) { // check if can win at the next move
-            if(board.canPlay(x) && board.isWinningMove(x)) 
-            return (WIDTH * HEIGHT +  1 - board.getMovedStep()) / 2;
+        int max = (WIDTH * HEIGHT - 1 - board.getMovedStep()) / 2; // maximum score
+
+        if(int val = transTable.get(board.key())) {
+            max = val + MIN_SCORE - 1;
         }
-
-        int max = (WIDTH * HEIGHT - 1 - board.getMovedStep()) / 2; // maximum score is score of winning at this state
-
-        if(int val = transTable.get(board.key()))
-        max = val + MIN_SCORE - 1;
 
         if(beta > max) {
             beta = max;                     // there is no need to keep beta above our max possible score.
@@ -40,7 +50,7 @@ private:
 
         for(int x = 0; x < WIDTH; x++) {
             // compute the score of all possible next move and keep the best one
-            if (board.canPlay(columnOrder[x])) { // play by order
+            if (next & Board::column_mask(columnOrder[x])) { // play by order
                 Board board_2(board);
                 board_2.play(columnOrder[x]);               // It's opponent turn in P2 position after current player plays x column.
                 int score = -negamax(board_2, -beta, -alpha); // If current player plays col x, his score will be the opposite of opponent's score after playing col x
@@ -70,6 +80,10 @@ public:
 
     int getBestMove(const Board& board) {
         // implement zero window search ... no tim gia tri chinh xac cua score bang cach gan giong cay nhi phan
+        if (board.canWinNext()) {
+            return (WIDTH * HEIGHT+  1 - board.getMovedStep()) /2;
+        }
+
         int min = - (WIDTH * HEIGHT - board.getMovedStep()) / 2;
         int max = (WIDTH * HEIGHT+1 - board.getMovedStep())/2;
         while (min < max) {

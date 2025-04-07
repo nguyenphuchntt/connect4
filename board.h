@@ -117,7 +117,32 @@ class Board {
         return current_position;
     }
 
+    bool canWinNext() const {
+        return winning_position() & possible();
+    }
 
+    uint64_t possibleNonLosingMoves() const {
+        assert(!canWinNext());
+        uint64_t possible_mask = possible();
+        uint64_t opponent_win = opponent_winning_position();
+        uint64_t forced_moves = possible_mask & opponent_win;
+        if (forced_moves) {
+            if (forced_moves & (forced_moves - 1)) {
+                // more than 1 forced move
+                return 0; // lose
+            } else {
+                possible_mask = forced_moves;
+                // have to play this move
+            }
+        }
+        return possible_mask & ~(opponent_win >> 1);
+        // tránh đánh ô ở dưới ô đối thủ sẽ thắng vì turn sau là turn của họ đánh rồi
+    }    
+
+    // return a bitmask 1 on all the cells of a given column
+    static constexpr int64_t column_mask(int col) {
+        return ((UINT64_C(1) << HEIGHT)-1) << col*(HEIGHT+1);
+    }
 
 private:
     /**
@@ -140,11 +165,6 @@ private:
     // return a bitmask containing a single 1 corresponding to the bottom cell of a given column
     static uint64_t bottom_mask_col(int col) {
         return UINT64_C(1) << col * (HEIGHT+1);
-    }
-
-    // return a bitmask 1 on all the cells of a given column
-    static uint64_t column_mask(int col) {
-        return ((UINT64_C(1) << HEIGHT)-1) << col*(HEIGHT+1);
     }
   
     // check winning condition
@@ -195,28 +215,6 @@ private:
 
     uint64_t opponent_winning_position() const {
         return compute_winning_position(current_position ^ mask, mask);
-    }
-
-    bool canWinNext() {
-        return winning_position() & possible();
-    }
-
-    uint64_t possibleNonLosingMoves() {
-        assert(!canWinNext());
-        uint64_t possible_mask = possible();
-        uint64_t opponent_win = opponent_winning_position();
-        uint64_t forced_moves = possible_mask & opponent_win;
-        if (forced_moves) {
-            if (forced_moves & (forced_moves - 1)) {
-                // more than 1 forced move
-                return 0; // lose
-            } else {
-                possible_mask = forced_moves;
-                // have to play this move
-            }
-        }
-        return possible_mask & ~(opponent_win >> 1);
-        // tránh đánh ô ở dưới ô đối thủ sẽ thắng vì turn sau là turn của họ đánh rồi
     }
 
     static uint64_t compute_winning_position(uint64_t position, uint64_t mask) {
