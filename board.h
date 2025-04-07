@@ -1,3 +1,7 @@
+#ifndef BOARD_H
+#define BOARD_H
+
+
 #include <bits/stdc++.h>
 
 static const int WIDTH = 7;
@@ -119,6 +123,8 @@ class Board {
         return current_position;
     }
 
+    
+
 private:
     /**
      * NOTE: 0 means EMPTY
@@ -175,6 +181,4 @@ private:
     }
 };
 
-
-
-
+#endif

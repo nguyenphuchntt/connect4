@@ -1,5 +1,5 @@
-#include "transpositionTable.cpp"
-
+#include "transpositionTable.h"
+#include "board.h"
 /**
  * NOTE: Giải thích alpha beta window: 
  * 
