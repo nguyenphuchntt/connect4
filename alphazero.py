@@ -29,7 +29,7 @@ class AlphaZero:
             neutral_state = state if player==1 else self.board.flip(state)
             action_probs = self.mcts.search(neutral_state)
             
-            memory.append((neutral_state, action_probs, player))
+            memory.append((state, action_probs, player))
             
             # The more the 'TEMPERATURE' get higher to infinity, the more random will the probs get
             # which mean we want to do the exploration
@@ -54,7 +54,7 @@ class AlphaZero:
                     ))
                 return returnMemory
             
-            player *= 1
+            player *= -1
                 
             
     
