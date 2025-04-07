@@ -40,13 +40,26 @@ private:
 
         int max = (WIDTH * HEIGHT - 1 - board.getMovedStep()) / 2; // maximum score
 
-        if(int val = transTable.get(board.key())) {
-            max = val + MIN_SCORE - 1;
-        }
-
         if(beta > max) {
             beta = max;                     // there is no need to keep beta above our max possible score.
             if(alpha >= beta) return beta;  // prune the exploration if the [alpha;beta] window is empty.
+        }
+
+        const uint64_t key = board.key();
+        if (int value = transTable.get(key)) {
+            if (value > MAX_SCORE - MIN_SCORE + 1) {
+                // we have an lower bound
+                min = value + 2 * MIN_SCORE - MAX_SCORE - 2;
+                if (alpha < min) {
+                    alpha = min;
+                    if (alpha >= beta) return alpha;
+                }
+            } else { // we have an upper bound
+                if (beta > max) {
+                    beta = max;
+                    if (alpha >= beta) return beta;
+                }
+            }
         }
 
         MoveSorter moves;
@@ -64,7 +77,10 @@ private:
             Board board_2(board);
             board_2.play(next);               // It's opponent turn in P2 position after current player plays x column.
             int score = -negamax(board_2, -beta, -alpha); // If current player plays col x, his score will be the opposite of opponent's score after playing col x
-            if(score >= beta) return score;  // prune the exploration if we find a possible move better than what we were looking for.
+            if(score >= beta) {
+                transTable.put(key, score + MAX_SCORE - 2 * MIN_SCORE + 2); // save the lower bound
+                return score;  // prune the exploration if we find a possible move better than what we were looking for.
+            }
             if(score > alpha) alpha = score; // reduce the [alpha;beta] window for next exploration, as we only 
                                                 // need to search for a position that is better than the best so far.
         }

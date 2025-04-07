@@ -4,6 +4,11 @@
 #include "board.h"
 #include <bits/stdc++.h>
 
+/**
+ * NOTE: improve by Chinese remainder theorem
+ * Thuật toán này giúp giải phương trình đồng dư -> chứng minh được cần tối thiếu bao nhiêu entries để không xảy ra collision trong hash table
+ */
+
 struct Entry {
     uint64_t key: 56; // use 56-bit keys
     uint8_t val;      // use 8-bit values
@@ -51,48 +56,57 @@ class TableGetter {
 };
 
 // hash table to caching
+// keySize = 7 * 7 = 49
+// valueSize = 37
+// logSize = 23
 class TranspositionTable {
+private:
+    // size of the transition table. Have to be odd, at best -> prime number
+    static const size_t size = next_prime(1 << 23);
+
+    uint32_t *K; // array to store 
+    uint64_t *V; // array to store value;
+
+    size_t index(uint32_t key) const {
+        return key % size;
+    }
 public:
 
     std::vector<Entry> entries;
 
-    unsigned int index(uint64_t key) const {
-        return key % entries.size();
+    TranspositionTable() {
+        K = new uint32_t[size];
+        V = new uint64_t[size];
+        reset();
     }
 
-    TranspositionTable () {}
+    ~TranspositionTable() {
+        delete[] K;
+        delete[] V;
+    }
 
     TranspositionTable(unsigned int size): entries(size) {
     }
 
-    /*
-    * Empty the Transition Table.
-    */
+    
     void reset() { // fill everything with 0, because 0 value means missing data
-        memset(&entries[0], 0, entries.size() * sizeof(Entry));
-    }
-
-    /**
-     * Store a value for a given key
-     * @param key: 56-bit key
-     * @param value: non-null 8-bit value. null (0) value are used to encode missing data.
-     */
-    void put(uint64_t key, uint8_t val) {
-        unsigned int i = index(key); // compute the index position
-        entries[i].key = key;              // and overide any existing value.
-        entries[i].val = val;       
+        memset(K, 0, size * sizeof(key_t));
+        memset(V, 0, size * sizeof(uint64_t));
     }
 
 
-    /** 
-     * Get the value of a key
-     * @param key
-     * @return 8-bit value associated with the key if present, 0 otherwise.
-     */
-    uint8_t get(uint64_t key) const {
-        unsigned int i = index(key);  // compute the index position
-        if(entries[i].key == key) {
-            return entries[i].val;   // and return value if key matches
+    //Store a value for a given key
+    void put(uint32_t key, uint64_t value) {
+        size_t pos = index(key);
+        K[pos] = key;
+        V[pos] = value;
+    }
+
+    // Get the value of a key
+    uint8_t get(uint32_t key) const {
+        size_t pos = index(key);  // compute the index position
+        if(K[pos] == (uint32_t)key) {
+            return V[pos];   // and return value if key matches
         } else {
             return 0;               // or 0 if missing entry
         }
