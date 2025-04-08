@@ -1,5 +1,5 @@
-#ifndef TRANS_HEADER_H
-#define TRANS_HEADER_H
+#ifndef TRANS_HEADER2_H
+#define TRANS_HEADER2_H
 
 #include "board.h"
 #include <bits/stdc++.h>
@@ -8,12 +8,6 @@
  * NOTE: improve by Chinese remainder theorem
  * Thuật toán này giúp giải phương trình đồng dư -> chứng minh được cần tối thiếu bao nhiêu entries để không xảy ra collision trong hash table
  */
-
-struct Entry {
-    uint64_t key: 56; // use 56-bit keys
-    uint8_t val;      // use 8-bit values
-              // overall sizeof(Entry) = 8 bytes
-};
 
 // get median
 constexpr uint64_t med(uint64_t min, uint64_t max) {
@@ -57,15 +51,15 @@ class TableGetter {
 
 // hash table to caching
 // keySize = 7 * 7 = 49
-// valueSize = 37
+// valueSize = 7
 // logSize = 23
 class TranspositionTable {
 private:
     // size of the transition table. Have to be odd, at best -> prime number
     static const size_t size = next_prime(1 << 23);
 
-    uint32_t *K; // array to store 
-    uint64_t *V; // array to store value;
+    uint32_t *K; // array to store key; 26
+    uint8_t *V; // array to store value; 7
 
     size_t index(uint64_t key) const {
         return key % size;
@@ -74,7 +68,7 @@ public:
 
     TranspositionTable() {
         K = new uint32_t[size];
-        V = new uint64_t[size];
+        V = new uint8_t[size];
         reset();
     }
 
@@ -85,12 +79,12 @@ public:
 
     void reset() { // fill everything with 0, because 0 value means missing data
         memset(K, 0, size * sizeof(uint32_t));
-        memset(V, 0, size * sizeof(uint64_t));
+        memset(V, 0, size * sizeof(uint8_t));
     }
 
 
     //Store a value for a given key
-    void put(uint32_t key, uint64_t value) {
+    void put(uint32_t key, uint8_t value) {
         size_t pos = index(key);
         K[pos] = key;
         V[pos] = value;

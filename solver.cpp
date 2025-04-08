@@ -1,4 +1,4 @@
-#include "transpositionTable.h"
+#include "TranspositionTable.h"
 #include "board.h"
 #include "MoveSorter.h"
 /**
@@ -11,11 +11,13 @@
 
 class Solver {
 private:
-    TranspositionTable transTable;
+    TranspositionTable<Board::WIDTH*(Board::HEIGHT+1),                    // nb bits key
+    7,  // nb bits value
+    23> transTable;    
 
     unsigned long long nodeCount;
 
-    int columnOrder[WIDTH]; // column exploration order
+    int columnOrder[Board::WIDTH]; // column exploration order
 
     int negamax(const Board& board, int alpha, int beta) {
         assert(alpha < beta);
@@ -25,20 +27,21 @@ private:
 
         uint64_t next = board.possibleNonLosingMoves();
         if (next == 0) {
-            return - (WIDTH * HEIGHT - board.getMovedStep()) / 2;
+            return (-1) * (Board::WIDTH * Board::HEIGHT - board.getMovedStep()) / 2;
         }
-        if (board.getMovedStep() >= WIDTH * HEIGHT - 2) {
+        if (board.getMovedStep() >= Board::WIDTH * Board::HEIGHT - 2) {
             return 0; // draw
         }
         
-        int min = - (WIDTH * HEIGHT - 2 - board.getMovedStep()) / 2; // minimum score
+        int min = (-1) * ((Board::WIDTH * Board::HEIGHT - board.getMovedStep())/2);
+        // minimum score
 
         if (alpha < min) {
             alpha = min;
             if (alpha >= beta) return alpha; //prune
         }
 
-        int max = (WIDTH * HEIGHT - 1 - board.getMovedStep()) / 2; // maximum score
+        int max = (Board::WIDTH * Board::HEIGHT - 1 - board.getMovedStep()) / 2; // maximum score
 
         if(beta > max) {
             beta = max;                     // there is no need to keep beta above our max possible score.
@@ -47,14 +50,15 @@ private:
 
         const uint64_t key = board.key();
         if (int value = transTable.get(key)) {
-            if (value > MAX_SCORE - MIN_SCORE + 1) {
+            if (value > Board::MAX_SCORE - Board::MIN_SCORE + 1) {
                 // we have an lower bound
-                min = value + 2 * MIN_SCORE - MAX_SCORE - 2;
+                min = value + 2 * Board::MIN_SCORE - Board::MAX_SCORE - 2;
                 if (alpha < min) {
                     alpha = min;
                     if (alpha >= beta) return alpha;
                 }
             } else { // we have an upper bound
+                max = value + Board::MIN_SCORE - 1;
                 if (beta > max) {
                     beta = max;
                     if (alpha >= beta) return beta;
@@ -64,7 +68,7 @@ private:
 
         MoveSorter moves;
 
-        for (int i = WIDTH; i--;) {
+        for (int i = Board::WIDTH; i--;) {
             // xét từ cột
             if (uint64_t move = next & Board::column_mask(columnOrder[i])) {
                 // Ghép next với một cột toàn 1 -> xem cột đó có possible move không
@@ -76,16 +80,16 @@ private:
         while (uint64_t next = moves.getNext()) {
             Board board_2(board);
             board_2.play(next);               // It's opponent turn in P2 position after current player plays x column.
-            int score = -negamax(board_2, -beta, -alpha); // If current player plays col x, his score will be the opposite of opponent's score after playing col x
+            int score = (-1) * negamax(board_2, -beta, -alpha); // If current player plays col x, his score will be the opposite of opponent's score after playing col x
             if(score >= beta) {
-                transTable.put(key, score + MAX_SCORE - 2 * MIN_SCORE + 2); // save the lower bound
+                transTable.put(key, score + Board::MAX_SCORE - 2 * Board::MIN_SCORE + 2); // save the lower bound
                 return score;  // prune the exploration if we find a possible move better than what we were looking for.
             }
             if(score > alpha) alpha = score; // reduce the [alpha;beta] window for next exploration, as we only 
                                                 // need to search for a position that is better than the best so far.
         }
 
-        transTable.put(board.key(), alpha - MIN_SCORE + 1); // save the upper bound of the position
+        transTable.put(key, alpha - Board::MIN_SCORE + 1); // save the upper bound of the position
         return alpha;
     }
 
@@ -101,20 +105,20 @@ public:
         transTable.reset();
     }
 
-    Solver() : nodeCount{0} { // 64MB cache
-        for(int i = 0; i < WIDTH; i++){
-            columnOrder[i] = WIDTH/2 + (1-2*(i%2))*(i+1)/2; // initialize the column exploration order, starting with center columns
+    Solver() : nodeCount{0} {
+        for(int i = 0; i < Board::WIDTH; i++){
+            columnOrder[i] = Board::WIDTH/2 + (1-2*(i%2))*(i+1)/2; // initialize the column exploration order, starting with center columns
         } 
     }
 
     int getBestMove(const Board& board) {
         // implement zero window search ... no tim gia tri chinh xac cua score bang cach gan giong cay nhi phan
         if (board.canWinNext()) {
-            return (WIDTH * HEIGHT+  1 - board.getMovedStep()) /2;
+            return (Board::WIDTH * Board::HEIGHT +  1 - board.getMovedStep()) /2;
         }
 
-        int min = - (WIDTH * HEIGHT - board.getMovedStep()) / 2;
-        int max = (WIDTH * HEIGHT+1 - board.getMovedStep())/2;
+        int min = ((Board::WIDTH * Board::HEIGHT - board.getMovedStep())/2) * (-1);
+        int max = (Board::WIDTH * Board::HEIGHT+ 1 - board.getMovedStep())/2;
         while (min < max) {
             // iteratively narrow the min-max exploration window
             int med = min + (max - min) / 2; // trung binh cong

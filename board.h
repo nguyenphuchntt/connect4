@@ -1,13 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-
 #include <bits/stdc++.h>
-
-static const int WIDTH = 7;
-static const int HEIGHT = 6;
-static const int MIN_SCORE = - (WIDTH * HEIGHT) / 2 + 3;
-static const int MAX_SCORE = (WIDTH * HEIGHT + 1) / 2 - 3;
 
 constexpr static uint64_t bottom(int width, int height) {
     // return a bitmask with a row full of 1 at the bottom
@@ -15,6 +9,11 @@ constexpr static uint64_t bottom(int width, int height) {
 }
 
 class Board {
+public:
+    static const int WIDTH = 7;
+    static const int HEIGHT = 6;
+    static const int MIN_SCORE = (-1) * (WIDTH * HEIGHT) / 2 + 3;
+    static const int MAX_SCORE = (WIDTH * HEIGHT + 1) / 2 - 3;
     /** 
      * A class storing a Connect 4 position.
      * Functions are relative to the current player to play.
@@ -65,8 +64,6 @@ class Board {
      * non-ambigous representation of the position.
      */
 
-    public:
-
     Board() : current_position{0}, mask{0}, movedStep{0} {
     }
 
@@ -79,21 +76,11 @@ class Board {
     }
 
     /**
-     * Indicates whether a column is playable
-     */
-    bool canPlay(int column) const {
-        return (mask & top_mask_col(column)) == 0;
-    }
-
-    /**
      * Play a playable column
      */
-    void play(int column) {
-        current_position ^= mask; // chuyển người chơi 
-        mask |= mask + bottom_mask_col(column);
-        // bottom_mask trả về một mask chứa giá trị 1 duy nhất tại cột đã truyền vào
-        // mask + bottom_mask(col) sẽ đẩy cột được chọn lên chiều cao 1 (vì 1 + 1 = 10)
-        // |= để fill lại số 0 (trong 10) thành 11
+    void play(uint64_t move) {
+        current_position ^= mask;
+        mask |= move;
         movedStep++;
     }
 
@@ -104,7 +91,7 @@ class Board {
         for(unsigned int i = 0; i < seq.size(); i++) {
             int col = seq[i] - '1'; 
             if(col < 0 || col >= WIDTH || !canPlay(col) || isWinningMove(col)) return i; // invalid move
-            play(col);
+            playCol(col);
         }
         return seq.size();
     }
@@ -152,16 +139,23 @@ class Board {
 
 private:
     /**
-     * NOTE: 0 means EMPTY
-     * NOTE: 1 means PERSON
-     * NOTE: -1 means AI
-     * 
-     * NOTE: Ban co nay nam ngang
      * NOTE: Cách tính điểm vd: -5 có nghĩa là sẽ thua sau 5 nước tính từ khi chơi full bàn cờ (42/42 quân), +5 nghĩa là chơi thắng sau 5 nước tính từ khi chơi full bàn cờ
      */
     uint64_t current_position; // lưu người chơi hiện tại
     uint64_t mask;              // lưu cho cả hai người chơi
     unsigned int movedStep;
+
+    /**
+     * Indicates whether a column is playable
+     */
+    bool canPlay(int column) const {
+        return (mask & top_mask_col(column)) == 0;
+    }
+
+    // play at the column
+    void playCol(int column) {
+        play((mask + bottom_mask_col(column)) & column_mask(column));
+    }
 
     // return a bitmask containing a single 1 corresponding to the top cel of a given column
     static uint64_t top_mask_col(int col) {

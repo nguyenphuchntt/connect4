@@ -57,7 +57,7 @@
      {
        solver.reset();
        unsigned long long start_time = getTimeMicrosec();
-       int score = solver.getBestMove(P);
+       int score = solver.getBestMove(P); 
        unsigned long long end_time = getTimeMicrosec();
        std::cout << line << " " << score << " " << solver.getNodeCount() << " " << (end_time - start_time);
      }

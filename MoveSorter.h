@@ -44,7 +44,7 @@ private:
     struct {
         uint64_t move;
         int score;
-    } entries[WIDTH];
+    } entries[Board::WIDTH];
 
 };
 
