@@ -13,9 +13,7 @@ public:
     void add(uint64_t move, int score) {
         // Add a move in the container with its score
         int pos = size++;
-        for(; pos && entries[pos - 1].score > score; --pos) {
-            entries[pos] = entries[pos - 1];
-        }
+        for(; pos && entries[pos-1].score > score; --pos) entries[pos] = entries[pos-1];
         entries[pos].move = move;
         entries[pos].score = score;
     }

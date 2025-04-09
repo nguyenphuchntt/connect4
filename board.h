@@ -10,6 +10,7 @@ constexpr static uint64_t bottom(int width, int height) {
 
 class Board {
 public:
+
     static const int WIDTH = 7;
     static const int HEIGHT = 6;
     static const int MIN_SCORE = (-1) * (WIDTH * HEIGHT) / 2 + 3;
@@ -64,17 +65,6 @@ public:
      * non-ambigous representation of the position.
      */
 
-    Board() : current_position{0}, mask{0}, movedStep{0} {
-    }
-
-    uint64_t key() const {
-        return current_position + mask;
-    }
-
-    unsigned int getMovedStep() const {
-        return movedStep;
-    }
-
     /**
      * Play a playable column
      */
@@ -90,22 +80,22 @@ public:
     unsigned int play(std::string seq) {
         for(unsigned int i = 0; i < seq.size(); i++) {
             int col = seq[i] - '1'; 
-            if(col < 0 || col >= WIDTH || !canPlay(col) || isWinningMove(col)) return i; // invalid move
+            if(col < 0 || col >= Board::WIDTH || !canPlay(col) || isWinningMove(col)) return i; // invalid move
             playCol(col);
         }
         return seq.size();
     }
- 
-    uint64_t getMask() const {
-        return mask;
-    }
-
-    uint64_t getPosition() const {
-        return current_position;
-    }
 
     bool canWinNext() const {
         return winning_position() & possible();
+    }
+
+    unsigned int getMovedStep() const {
+        return movedStep;
+    }
+
+    uint64_t key() const {
+        return current_position + mask;
     }
 
     // return a bitmap of all the possible next moves that do not lose in one turn.
@@ -125,16 +115,19 @@ public:
         }
         return possible_mask & ~(opponent_win >> 1);
         // tránh đánh ô ở dưới ô đối thủ sẽ thắng vì turn sau là turn của họ đánh rồi
-    }    
-
-    // return a bitmask 1 on all the cells of a given column
-    static constexpr int64_t column_mask(int col) {
-        return ((UINT64_C(1) << HEIGHT)-1) << col*(HEIGHT+1);
-    }
+    } 
 
     // score a possible move = number of possible winning state
     int moveScore(uint64_t move) const {
         return popCount(compute_winning_position(current_position | move, mask));
+    }
+
+    Board() : current_position{0}, mask{0}, movedStep{0} {
+    }
+
+    // return a bitmask 1 on all the cells of a given column
+    static constexpr int64_t column_mask(int col) {
+        return ((UINT64_C(1) << HEIGHT) - 1) << col * (HEIGHT + 1);
     }
 
 private:
@@ -157,60 +150,6 @@ private:
         play((mask + bottom_mask_col(column)) & column_mask(column));
     }
 
-    // return a bitmask containing a single 1 corresponding to the top cel of a given column
-    static uint64_t top_mask_col(int col) {
-        return (UINT64_C(1) << (HEIGHT - 1)) << col * (HEIGHT+1);
-    }
-
-    // return a bitmask containing a single 1 corresponding to the bottom cell of a given column
-    static uint64_t bottom_mask_col(int col) {
-        return UINT64_C(1) << col * (HEIGHT+1);
-    }
-    
-    // counts number of bit set to one in a 64 bits integer
-    static unsigned int popCount(uint64_t m) {
-        unsigned int res = 0;
-        for (res = 0; m; res++) {
-            m &= m - 1;
-        }
-        return res;
-    }
-  
-    // check winning condition
-    static bool alignment(uint64_t pos) {
-        // horizontal 
-        uint64_t m = pos & (pos >> (HEIGHT+1));
-        // shift sang phai 1 don vi & vi tri hien tai -> xem co 2 o lien nhau khong
-        if(m & (m >> (2*(HEIGHT+1)))) return true;
-        // m la ket qua cua phep tinh tren, shift tiep sang 2 don vi de xem co 4 o lien nhau khong
-        // Ket qua chi can khong phai tat ca deu la bit 0 la true
-
-        // diagonal 1
-        m = pos & (pos >> HEIGHT);
-        // tuong tu o tren nhung shift cheo tren
-        if(m & (m >> (2*HEIGHT))) return true;
-
-        // diagonal 2 
-        m = pos & (pos >> (HEIGHT+2));
-        // tuong tu o tren nhung shift cheo duoi
-        if(m & (m >> (2*(HEIGHT+2)))) return true;
-
-        // vertical;
-        m = pos & (pos >> 1);
-        //tuong tu o tren nhung shift theo chieu doc
-        if(m & (m >> 2)) return true;
-
-        return false;
-    }
-
-    const static uint64_t bottom_mask = bottom(WIDTH, HEIGHT);
-    const static uint64_t board_mask = bottom_mask * ((1LL << HEIGHT) - 1); // full 1
-
-    // 
-    uint64_t possible() const {
-        return (mask + bottom_mask) & board_mask; // những ô đã đi rồi + 1 ô trên nó full 1
-    }
-
     /**
      * Indicates whether the current player wins by playing a given column.
      */
@@ -226,16 +165,49 @@ private:
         return compute_winning_position(current_position ^ mask, mask);
     }
 
+    // 
+    uint64_t possible() const {
+        return (mask + bottom_mask) & board_mask; // những ô đã đi rồi + 1 độ cao
+    }
+ 
+    uint64_t getMask() const {
+        return mask;
+    }
+
+    uint64_t getPosition() const {
+        return current_position;
+    }   
+
+    // return a bitmask containing a single 1 corresponding to the top cel of a given column
+    static uint64_t top_mask_col(int col) {
+        return (UINT64_C(1) << (HEIGHT - 1)) << col * (HEIGHT+1);
+    }
+
+    // return a bitmask containing a single 1 corresponding to the bottom cell of a given column
+    static uint64_t bottom_mask_col(int col) {
+        return UINT64_C(1) << col * (HEIGHT + 1);
+    }
+    
+    // counts number of bit set to one in a 64 bits integer
+    static unsigned int popCount(uint64_t m) {
+        unsigned int c = 0; 
+        for (c = 0; m; c++) m &= m - 1;
+        return c;
+    }
+
+    const static uint64_t bottom_mask = bottom(WIDTH, HEIGHT);
+    const static uint64_t board_mask = bottom_mask * ((1LL << HEIGHT) - 1); // full 1
+
     // list possible winning moves
     static uint64_t compute_winning_position(uint64_t position, uint64_t mask) {
-        // chieu doc
+        // vertical;
         uint64_t r = (position << 1) & (position << 2) & (position << 3);
 
-        // chieu ngang
+        //horizontal
         uint64_t p = (position << (HEIGHT+1)) & (position << 2*(HEIGHT+1));
-        r |= p & (position << 3*(HEIGHT+1));
-        r |= p & (position >> (HEIGHT+1));
-        p = (position >> (HEIGHT+1)) & (position >> 2*(HEIGHT+1));
+        r |= p & (position << 3 * (HEIGHT+1));
+        r |= p & (position >> (HEIGHT + 1));
+        p = (position >> (HEIGHT + 1)) & (position >> 2*(HEIGHT+1));
         r |= p & (position << (HEIGHT+1));
         r |= p & (position >> 3*(HEIGHT+1));
 
@@ -256,8 +228,6 @@ private:
         r |= p & (position >> 3*(HEIGHT+2));
 
         return r & (board_mask ^ mask);
-        // r la cac nuoc di co the win
-        // (board_mask ^ mask) la nhung nuoc chua danh
     }
 };
 

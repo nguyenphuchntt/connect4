@@ -16,7 +16,7 @@
  * along with Connect4 Game Solver. If not, see <http://www.gnu.org/licenses/>.
  */
 
- #include "solver.cpp"
+ #include "solver.h"
  #include <iostream>
  #include <sys/time.h>
  
@@ -57,7 +57,7 @@
      {
        solver.reset();
        unsigned long long start_time = getTimeMicrosec();
-       int score = solver.getBestMove(P); 
+       int score = solver.solve(P); 
        unsigned long long end_time = getTimeMicrosec();
        std::cout << line << " " << score << " " << solver.getNodeCount() << " " << (end_time - start_time);
      }

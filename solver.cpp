@@ -1,6 +1,7 @@
 #include "TranspositionTable.h"
 #include "board.h"
 #include "MoveSorter.h"
+#include "solver.h"
 /**
  * NOTE: Giải thích alpha beta window: 
  * 
@@ -9,24 +10,15 @@
  * do đó khi AI tìm được nước đi tốt hơn beta, nó dừng lại ngay lập tức, nếu đối thủ tìm thấy nước đi yếu hơn alpha, nó cũng dừng lại
  */
 
-class Solver {
-private:
-    TranspositionTable<Board::WIDTH*(Board::HEIGHT+1),                    // nb bits key
-    7,  // nb bits value
-    23> transTable;    
 
-    unsigned long long nodeCount;
-
-    int columnOrder[Board::WIDTH]; // column exploration order
-
-    int negamax(const Board& board, int alpha, int beta) {
+    int Solver::negamax(const Board& board, int alpha, int beta) {
         assert(alpha < beta);
         assert(!board.canWinNext());
 
         nodeCount++;
 
-        uint64_t next = board.possibleNonLosingMoves();
-        if (next == 0) {
+        uint64_t possible = board.possibleNonLosingMoves();
+        if (possible == 0) {
             return (-1) * (Board::WIDTH * Board::HEIGHT - board.getMovedStep()) / 2;
         }
         if (board.getMovedStep() >= Board::WIDTH * Board::HEIGHT - 2) {
@@ -70,7 +62,7 @@ private:
 
         for (int i = Board::WIDTH; i--;) {
             // xét từ cột
-            if (uint64_t move = next & Board::column_mask(columnOrder[i])) {
+            if (uint64_t move = possible & Board::column_mask(columnOrder[i])) {
                 // Ghép next với một cột toàn 1 -> xem cột đó có possible move không
                 // nếu có -> add
                 moves.add(move, board.moveScore(move));
@@ -93,25 +85,14 @@ private:
         return alpha;
     }
 
-
-
-public:
-    unsigned long long getNodeCount() {
-        return nodeCount;
-    }
-
-    void reset() {
+    Solver::Solver() {
         nodeCount = 0;
-        transTable.reset();
-    }
-
-    Solver() : nodeCount{0} {
         for(int i = 0; i < Board::WIDTH; i++){
             columnOrder[i] = Board::WIDTH/2 + (1-2*(i%2))*(i+1)/2; // initialize the column exploration order, starting with center columns
         } 
     }
 
-    int getBestMove(const Board& board) {
+    int Solver::solve(const Board& board) {
         // implement zero window search ... no tim gia tri chinh xac cua score bang cach gan giong cay nhi phan
         if (board.canWinNext()) {
             return (Board::WIDTH * Board::HEIGHT +  1 - board.getMovedStep()) /2;
@@ -120,17 +101,14 @@ public:
         int min = ((Board::WIDTH * Board::HEIGHT - board.getMovedStep())/2) * (-1);
         int max = (Board::WIDTH * Board::HEIGHT+ 1 - board.getMovedStep())/2;
         while (min < max) {
-            // iteratively narrow the min-max exploration window
-            int med = min + (max - min) / 2; // trung binh cong
-            if (med <= 0 && min / 2 < med) med = min / 2;
-            else if (med >= 0 && max / 2 > med) med = max / 2; // dieu chinh de tranh lap vo han
-            int r = negamax(board, med, med + 1);
-            if (r <= med) {
+            int med = min + (max - min)/2;
+            if(med <= 0 && min/2 < med) med = min/2;
+            else if(med >= 0 && max/2 > med) med = max/2; // điều chỉnh để tránh vòng lặp vô tận
+            int r = negamax(board, med, med + 1); 
+            if(r <= med) {
                 max = r;
-            } else {
-                min = r;
-            }
+            } 
+            else min = r;
         }
         return min;
     }
-};
