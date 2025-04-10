@@ -1,2 +1,6 @@
-solver.o: solver.cpp TranspositionTable.h board.h MoveSorter.h solver.h
-main.o: main.cpp solver.h board.h TranspositionTable.h
+-W
+-Wall
+-O3
+-MM
+solver.cpp
+main.cpp
