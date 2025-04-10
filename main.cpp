@@ -51,7 +51,7 @@
      Board P;
      if(P.play(line) != line.size())
      {
-       std::cerr << "Line " << l << ": Invalid move " << (P.nbMoves()+1) << " \"" << line << "\"" << std::endl;
+       std::cerr << "Line " << l << ": Invalid move " << (P.getMovedStep()+1) << " \"" << line << "\"" << std::endl;
      }
      else
      {

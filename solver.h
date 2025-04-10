@@ -17,7 +17,6 @@ private:
 
 public:
     int solve(const Board& board);
-
     unsigned long long getNodeCount() {
         return nodeCount;
     }
