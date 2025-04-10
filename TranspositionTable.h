@@ -1,9 +1,28 @@
-#ifndef TRANS_HEADER_H
-#define TRANS_HEADER_H
+/*
+ * This file is part of Connect4 Game Solver <http://connect4.gamesolver.org>
+ * Copyright (C) 2007 Pascal Pons <contact@gamesolver.org>
+ *
+ * Connect4 Game Solver is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Connect4 Game Solver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Connect4 Game Solver. If not, see <http://www.gnu.org/licenses/>.
+ */
 
+#ifndef TRANSPOSITION_TABLE_H
+#define TRANSPOSITION_TABLE_H
+
+#include <cstring>
+#include <cassert>
+#include <type_traits>
 #include <bits/stdc++.h>
-#include "board.h"
-
 
 /*
  * util functions to compute next prime at compile time
@@ -25,6 +44,14 @@ constexpr bool has_factor(uint64_t n, uint64_t min, uint64_t max) {
 constexpr uint64_t next_prime(uint64_t n) {
   return has_factor(n, 2, n) ? next_prime(n+1) : n;
 }
+
+// log2(1) = 0; log2(2) = 1; log2(3) = 1; log2(4) = 2; log2(8) = 3
+constexpr unsigned int log2(unsigned int n) 
+{
+  return n <= 1 ? 0 : log2(n/2)+1;
+}
+
+
 
 /**
  * Transposition Table is a simple hash map with fixed storage size.

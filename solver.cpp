@@ -19,13 +19,13 @@
 
         uint64_t possible = board.possibleNonLosingMoves();
         if (possible == 0) {
-            return (-1) * (Board::WIDTH * Board::HEIGHT - board.getMovedStep()) / 2;
+            return (-1) * (Board::WIDTH * Board::HEIGHT - board.nbMoves()) / 2;
         }
-        if (board.getMovedStep() >= Board::WIDTH * Board::HEIGHT - 2) {
+        if (board.nbMoves() >= Board::WIDTH * Board::HEIGHT - 2) {
             return 0; // draw
         }
         
-        int min = (-1) * ((Board::WIDTH * Board::HEIGHT - board.getMovedStep())/2);
+        int min = (-1) * (Board::WIDTH * Board::HEIGHT - board.nbMoves())/2;
         // minimum score
 
         if (alpha < min) {
@@ -33,7 +33,7 @@
             if (alpha >= beta) return alpha; //prune
         }
 
-        int max = (Board::WIDTH * Board::HEIGHT - 1 - board.getMovedStep()) / 2; // maximum score
+        int max = (Board::WIDTH * Board::HEIGHT - 1 - board.nbMoves()) / 2; // maximum score
 
         if(beta > max) {
             beta = max;                     // there is no need to keep beta above our max possible score.
@@ -61,7 +61,7 @@
         MoveSorter moves;
 
         for (int i = Board::WIDTH; i--;) {
-            // xét từ cột
+            // xét từng cột
             if (uint64_t move = possible & Board::column_mask(columnOrder[i])) {
                 // Ghép next với một cột toàn 1 -> xem cột đó có possible move không
                 // nếu có -> add
@@ -85,7 +85,7 @@
         return alpha;
     }
 
-    Solver::Solver() {
+    Solver::Solver() : nodeCount{0} {
         nodeCount = 0;
         for(int i = 0; i < Board::WIDTH; i++){
             columnOrder[i] = Board::WIDTH/2 + (1-2*(i%2))*(i+1)/2; // initialize the column exploration order, starting with center columns
@@ -95,11 +95,12 @@
     int Solver::solve(const Board& board) {
         // implement zero window search ... no tim gia tri chinh xac cua score bang cach gan giong cay nhi phan
         if (board.canWinNext()) {
-            return (Board::WIDTH * Board::HEIGHT +  1 - board.getMovedStep()) /2;
+            return (Board::WIDTH * Board::HEIGHT +  1 - board.nbMoves()) /2;
         }
 
-        int min = ((Board::WIDTH * Board::HEIGHT - board.getMovedStep())/2) * (-1);
-        int max = (Board::WIDTH * Board::HEIGHT+ 1 - board.getMovedStep())/2;
+        int min = ((Board::WIDTH * Board::HEIGHT - board.nbMoves())/2) * (-1);
+        int max = (Board::WIDTH * Board::HEIGHT+ 1 - board.nbMoves())/2;
+        std::cout << min << ' ' << max << std::endl;
         while (min < max) {
             int med = min + (max - min)/2;
             if(med <= 0 && min/2 < med) med = min/2;
