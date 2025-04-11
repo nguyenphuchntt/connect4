@@ -58,6 +58,9 @@
             }
         }
 
+        if (int value = book.get(board)) return value + Board::MIN_SCORE - 1;
+        else std::cout << "fail to load value";
+
         MoveSorter moves;
 
         for (int i = Board::WIDTH; i--;) {
@@ -100,7 +103,6 @@
 
         int min = ((Board::WIDTH * Board::HEIGHT - board.nbMoves())/2) * (-1);
         int max = (Board::WIDTH * Board::HEIGHT+ 1 - board.nbMoves())/2;
-        std::cout << min << ' ' << max << std::endl;
         while (min < max) {
             int med = min + (max - min)/2;
             if(med <= 0 && min/2 < med) med = min/2;

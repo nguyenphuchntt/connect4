@@ -1,2 +1,3 @@
-solver.o: solver.cpp TranspositionTable.h board.h MoveSorter.h solver.h
-main.o: main.cpp solver.h board.h TranspositionTable.h
+solver.o: solver.cpp TranspositionTable.h board.h MoveSorter.h solver.h \
+ OpeningBook.h
+main.o: main.cpp solver.h board.h TranspositionTable.h OpeningBook.h
