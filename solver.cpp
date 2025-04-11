@@ -59,8 +59,6 @@
         }
 
         if (int value = book.get(board)) return value + Board::MIN_SCORE - 1;
-        else std::cout << "fail to load value";
-
         MoveSorter moves;
 
         for (int i = Board::WIDTH; i--;) {

@@ -86,7 +86,15 @@ class Board {
         unsigned int play(std::string seq) {
             for(unsigned int i = 0; i < seq.size(); i++) {
                 int column = seq[i] - '1';
-                if(column < 0 || column >= Board::WIDTH || !canPlay(column) || isWinningMove(column)) return i; // invalid move
+                if(column < 0 || column >= Board::WIDTH || !canPlay(column) || isWinningMove(column)) {
+                    if (!canPlay(column)) {
+                        std::cout << "cant play";
+                    }
+                    if (isWinningMove(column)) {
+                        std::cout << "winning move";
+                    }
+                    return i; // invalid move
+                }
                 playCol(column);
               }
               return seq.size();

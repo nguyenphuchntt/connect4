@@ -6,7 +6,7 @@ COLS = 7
 def getCol(data):
     print(f"data:{data}")
     col = -1
-    max_score = 10
+    max_score = 1000
     for i in range(COLS):
         process = subprocess.Popen(
             ["./c4solver"],
@@ -15,13 +15,15 @@ def getCol(data):
             stderr=subprocess.PIPE,
             text=True
         )
-
+        if data.count(str(i + 1)) >= ROWS:
+            continue
         output, error = process.communicate(input=(data + str(i + 1)))
-        print(i, output)
-        if (int(output) < max_score):
-            max_score = int(output)
-            col = i
-
+        try:
+            if (int(output) < max_score):
+                max_score = int(output)
+                col = i
+        except Exception:
+            return i
     return col
 
 import sys
@@ -40,7 +42,7 @@ def print_board(board):
 def main():
     board = [[' ' for _ in range(COLS)] for _ in range(ROWS)]
     moved = ""
-    current_player = 'X'
+    current_player = 'O'
 
     while True:
         print_board(board)
@@ -80,4 +82,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
