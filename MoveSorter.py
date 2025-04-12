@@ -14,6 +14,7 @@ class MoveSorter:
     
     def add(self, move, score):
         "Thêm một nước đi vào entries với điểm số của nó"
+        move = int(move)
         pos = self.size
         self.size += 1
         

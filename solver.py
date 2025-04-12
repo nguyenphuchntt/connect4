@@ -3,8 +3,6 @@ from typing import Dict, Optional
 from board import Board
 from MoveSorter import MoveSorter
 from TranspositionTable import TranspositionTable
-from OpeningBook import OpeningBook
-
 
 # NOTE: Giải thích alpha beta window: 
 # alpha (giá trị tốt nhất của người chơi MAX - AI)
@@ -20,7 +18,6 @@ class Solver:
         Khởi tạo bộ giải
         """
         self.Board = board_class  # Lưu trữ tham chiếu đến lớp Board
-        self.book = OpeningBook(board_class.WIDTH, board_class.HEIGHT)
         self.node_count = 0
         
         # Khởi tạo thứ tự xem xét cột, bắt đầu từ cột giữa
@@ -47,7 +44,7 @@ class Solver:
             return 0  # Hòa
             
         min_score = (-1) * (self.Board.WIDTH * self.Board.HEIGHT - board.nb_moves()) // 2
-        
+
         if alpha < min_score:
             alpha = min_score
             if alpha >= beta:
@@ -78,10 +75,6 @@ class Solver:
                     beta = max_score
                     if alpha >= beta:
                         return beta
-                        
-        book_value = self.book.get(board)
-        if book_value:
-            return book_value + self.Board.MIN_SCORE - 1
             
         moves = MoveSorter(self.Board.WIDTH)
         
@@ -93,7 +86,7 @@ class Solver:
                 
         next_move = moves.getNext()
         while next_move:
-            board_copy = Board()  # Tạo bản sao của bàn cờ
+            board_copy = board.copy()  # Tạo bản sao của bàn cờ
             board_copy.play(next_move)
             score = (-1) * self.negamax(board_copy, -beta, -alpha)
             
@@ -148,5 +141,3 @@ class Solver:
         self.node_count = 0
         self.trans_table.reset()
         
-    def load_book(self, book_file):
-        self.book.load(book_file)

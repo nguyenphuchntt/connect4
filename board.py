@@ -64,7 +64,7 @@ class Board:
         self.current_position = np.int64(0)  # vị trí của người chơi hiện tại
         self.mask = np.int64(0)              # mặt nạ chung (cả hai người chơi)
         self.moved_step = 0                  # số nước đã đi
-    
+
     @staticmethod
     def bottom(width, height):
         "Tạo bit mask với hàng dưới cùng chứa chỉ các bit 1"
@@ -87,6 +87,14 @@ class Board:
     def column_mask(column):
         "Trả về bit mask với các bit 1 trên toàn bộ cột"
         return np.int64((1 << Board.HEIGHT) - 1) << (column * (Board.HEIGHT + 1))
+
+    def copy(self):
+        "Tạo bản sao hoàn chỉnh của bàn cờ hiện tại"
+        new_board = Board()
+        new_board.current_position = self.current_position 
+        new_board.mask = self.mask  
+        new_board.moved_step = self.moved_step  
+        return new_board
 
     def play(self, move):
         "Thực hiện một nước đi"

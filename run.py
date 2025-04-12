@@ -3,7 +3,7 @@ from board import Board
 from solver import Solver
 
 ROWS = 6
-COLS = 7
+COLS = 1
 
 def get_best_move(data):
     print(f"data: {data}")
@@ -11,12 +11,6 @@ def get_best_move(data):
     # Khởi tạo Board và Solver
     game_board = Board()
     solver = Solver(Board)
-    
-    # Load opening book nếu có
-    try:
-        solver.load_book("7x6.book")  # Kiểm tra lại đường dẫn chính xác
-    except Exception as e:
-        print(f"Không thể tải opening book: {e}")
     
     # Áp dụng lịch sử nước đi
     moves_played = game_board.play_sequence(data)

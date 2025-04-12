@@ -33,9 +33,6 @@ def main():
     """
     solver = Solver(Board)
     
-    opening_book = "7x6.book"
-    solver.load_book(opening_book)
-    
     try:
         line = input()
         p = Board()
