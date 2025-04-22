@@ -29,6 +29,10 @@ class GameState(BaseModel):
 class AIResponse(BaseModel):
     move: int
 
+@app.get("/api/test")
+async def health_check():
+    return {"status": "ok", "message": "Server is running"}
+
 @app.post("/api/connect4-move")
 async def make_move(game_state: GameState) -> AIResponse:
     try:
@@ -102,3 +106,6 @@ async def make_move(game_state: GameState) -> AIResponse:
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
+
+
+    # https://dashboard.render.com/web/srv-d03g2rjuibrs73a8aao0/logs
