@@ -39,6 +39,7 @@ async def make_move(game_state: GameState) -> AIResponse:
         COLS = 7
         SEARCH_DEPTH = 11
         CACHE_SIZE = 10_000_000
+        TIME_LIMIT = 8
         ai_chose_col = -1
         board_instance = None
 
@@ -77,7 +78,7 @@ async def make_move(game_state: GameState) -> AIResponse:
             
             if board_instance:
                 solver.reset_counters()
-                score, best_move_mask = solver.solve(board_instance, SEARCH_DEPTH, time_limit=9.5)
+                score, best_move_mask = solver.solve(board_instance, SEARCH_DEPTH, time_limit=TIME_LIMIT)
                 if best_move_mask is not None and best_move_mask != 0:
                     col_result = solver.get_col_from_move(best_move_mask)
                     if col_result != -1 and col_result in game_state.valid_moves:

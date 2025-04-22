@@ -6,6 +6,7 @@ ROWS = 6
 COLS = 7
 SEARCH_DEPTH = 11
 CACHE_SIZE = 30_000_000
+TIME_LIMIT = 8
 HUMAN_SYMBOL = 'X'
 AI_SYMBOL = 'O'
 
@@ -21,7 +22,7 @@ def _get_fallback_move(game_board: Board, solver: Solver) -> int:
 def get_ai_move(solver: Solver, game_board: Board, depth: int) -> int:
     solver.reset_counters() 
 
-    score, best_move_mask = solver.solve(game_board, depth, time_limit=8) # Bỏ time_limit nếu không dùng
+    score, best_move_mask = solver.solve(game_board, depth, time_limit=TIME_LIMIT) # Bỏ time_limit nếu không dùng
 
     best_col = -1
     if best_move_mask is not None and best_move_mask != 0:
@@ -55,7 +56,7 @@ def get_human_move(game_board: Board, player_symbol: str) -> int:
 
 def main():
     game_board = Board()
-    current_player_is_ai = False
+    current_player_is_ai = True
     current_player_symbol = AI_SYMBOL if current_player_is_ai else HUMAN_SYMBOL
 
     turn_count = 0
