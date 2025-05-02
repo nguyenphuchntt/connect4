@@ -1,6 +1,5 @@
 import numpy as np
 from typing import List, Optional
-
 from board import Board
 
 class GameStateStructure:
@@ -8,7 +7,7 @@ class GameStateStructure:
         self.board = board_data
         self.current_player = current_player_id
 
-def create_board_from_gamestate(game_state: GameStateStructure) -> Optional[Board]:
+def create_board_from_game_state(game_state: GameStateStructure) -> Optional[Board]:
 
     try:
         board_data = game_state.board
@@ -35,7 +34,7 @@ def create_board_from_gamestate(game_state: GameStateStructure) -> Optional[Boar
                     elif cell_value == 2:
                         p2_pos |= current_bit
                     else:
-                        print(f"Lỗi chuyển đổi: Giá trị ô không hợp lệ ({cell_value}) tại [{api_row}][{col}].")
+                        print(f"Error: Invalid value ({cell_value}) at [{api_row}][{col}].")
                         return None
 
         temp_board.mask = mask
@@ -50,6 +49,6 @@ def create_board_from_gamestate(game_state: GameStateStructure) -> Optional[Boar
 
 
     except Exception as e:
-        print(f"Lỗi không xác định trong quá trình chuyển đổi board: {e}")
+        print(f"Unexpected error: {e}")
         return None
 

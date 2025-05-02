@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from board import Board
 from solver import Solver
 import numpy as np
-from BoardConvert import create_board_from_gamestate, GameStateStructure
+from BoardConvert import create_board_from_game_state, GameStateStructure
 
 
 app = FastAPI()
@@ -53,7 +53,7 @@ async def make_move(game_state: GameState) -> AIResponse:
             board_data=game_state.board,
             current_player_id=game_state.current_player
         )
-        board_instance = create_board_from_gamestate(temp_state_struct)
+        board_instance = create_board_from_game_state(temp_state_struct)
         
         center_col = Board.WIDTH // 2
 
