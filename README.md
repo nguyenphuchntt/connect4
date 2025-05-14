@@ -23,6 +23,6 @@ Move Ordering: Orders moves by likely strength to maximize early pruning (from p
 
 Additionally, several other techniques are employed, such as blocking the opponent’s immediate winning moves, reusing the best move found in the previous iterative deepening search, and applying center-out move ordering.
 
-For a more detailed explanation, you can read [here](<link_to_pdf>) and [demo video](<link_to_video>)
+For a more detailed explanation, please read [here](<./report_G5.pdf>) and [demo video](<link_to_video>)
 
 
